@@ -1,0 +1,7 @@
+# example tasks
+# comment
+# comment must not be inline
+# path is not looked up, so always exec using full path
+@SET=ENV
+@-UNSETENV
+/exec/cmd arg1 "arg 2"
