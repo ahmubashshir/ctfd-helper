@@ -1,6 +1,6 @@
 FROM scratch AS metas
-LABEL org.opencontainers.image.description "Helpers for CTFd container based challanges"
-LABEL org.opencontainers.image.source https://github.org/ahmubashshir/ctfd-helper
+LABEL org.opencontainers.image.description="Helpers for CTFd container based challanges"
+LABEL org.opencontainers.image.source="https://github.org/ahmubashshir/ctfd-helper"
 
 FROM docker.io/alpine:latest AS helper
 
