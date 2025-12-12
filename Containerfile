@@ -10,6 +10,9 @@ gcc /src/tcpxy.c -static -o /helper/tcpxy
 EOF
 
 FROM scratch
+LABEL org.opencontainers.image.description "Helpers for CTFd container based challanges"
+LABEL org.opencontainers.image.source https://github.org/ahmubashshir/ctfd-helper
+
 COPY --from=helper /helper /bin
 WORKDIR /
 # change this if you don't use /bin/tcpxy in tasks
