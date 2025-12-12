@@ -1,3 +1,7 @@
+FROM scratch AS metas
+LABEL org.opencontainers.image.description "Helpers for CTFd container based challanges"
+LABEL org.opencontainers.image.source https://github.org/ahmubashshir/ctfd-helper
+
 FROM docker.io/alpine:latest AS helper
 
 RUN apk add --no-cache gcc musl-dev
@@ -9,9 +13,7 @@ gcc /src/flag.c -static -o /helper/flag
 gcc /src/tcpxy.c -static -o /helper/tcpxy
 EOF
 
-FROM scratch
-LABEL org.opencontainers.image.description "Helpers for CTFd container based challanges"
-LABEL org.opencontainers.image.source https://github.org/ahmubashshir/ctfd-helper
+FROM metas
 
 COPY --from=helper /helper /bin
 WORKDIR /
