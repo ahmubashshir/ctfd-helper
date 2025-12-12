@@ -310,7 +310,7 @@ int main()
 	setvbuf(stderr, NULL, _IONBF, 0);  // Disable buffering for stderr
 	setvbuf(stdin, NULL, _IONBF, 0);   // Disable buffering for stdin
 
-
+	unsetenv("PATH");
 	if(setup_tasks()) printf("OK.\n");
 	else printf("ERROR.\n");
 	return 0;
