@@ -6,12 +6,10 @@ FROM docker.io/alpine:latest AS helper
 
 RUN apk add --no-cache gcc musl-dev
 COPY src /src
-RUN <<EOF
-mkdir /helper
-gcc /src/init.c -static -o /helper/init
-gcc /src/flag.c -static -o /helper/flag
-gcc /src/tcpxy.c -static -o /helper/tcpxy
-EOF
+RUN mkdir /helper
+RUN gcc /src/init.c -static -o /helper/init
+RUN gcc /src/flag.c -static -o /helper/flag
+RUN gcc /src/tcpxy.c -static -o /helper/tcpxy
 
 FROM metas
 

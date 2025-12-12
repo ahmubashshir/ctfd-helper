@@ -145,6 +145,8 @@ int setup_tasks()
 	if (!fp) {
 		perror("failed to open /tasks");
 		return 0;
+	} else {
+		unlink(filename);
 	}
 
 	char *line = NULL;
