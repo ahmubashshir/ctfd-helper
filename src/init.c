@@ -207,6 +207,11 @@ int setup_tasks()
 				fclose(fp);
 				remove(cl + 1);
 				value[len] = 0;
+				char* s;
+				s = strrchr(value, '\n');
+				if(s != NULL && *(s + 1) == 0) *s = 0;
+				s = strrchr(value, '\r');
+				if(s != NULL && *(s + 1) == 0) *s = 0;
 			}
 
 			char *var = s + 1;
