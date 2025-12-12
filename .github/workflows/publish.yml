@@ -7,6 +7,7 @@ on:
     - Containerfile
     - 'src/**'
     - '**.yml'
+    - '!docs/**'
 
   release:
     types:
@@ -43,8 +44,8 @@ jobs:
           images: ${{ env.REG }}/${{ github.repository }}
           flavor: latest=true
           labels: |
-            org.opencontainers.image.description="Helpers for CTFd container based challanges"
-            org.opencontainers.image.documentation="https://github.com/${{ github . repository}}"
+            org.opencontainers.image.description=Helpers for CTFd container based challanges
+            org.opencontainers.image.documentation=https://github.com/${{ github . repository}}
 
       - name: build-push
         id: push

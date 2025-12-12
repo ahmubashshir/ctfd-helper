@@ -1,0 +1,4 @@
+# to fetch flag from CTFd:
+# $SERVER=localhost $PORT=9512 /bin/flag
+@FLAG:./flag.txt
+/bin/tcpxy /challenge
