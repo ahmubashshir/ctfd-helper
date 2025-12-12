@@ -4,4 +4,5 @@
 # path is not looked up, so always exec using full path
 @SET=ENV
 @-UNSETENV
-/exec/cmd arg1 "arg 2"
+@READ:/file/to/env
+$INLINE=SET $-UNSETINLINE /exec/cmd arg1 "arg 2"
