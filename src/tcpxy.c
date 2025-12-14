@@ -1,5 +1,5 @@
 /*
- * #triplet x86_64 linux musl
+ * #libc musl
  * @-static
  * @debug
  * @-pipe
@@ -230,6 +230,8 @@ int handler_main(int argc, char *argv[])
 	signal(SIGINT, handle_sigint_handler);
 	signal(SIGTERM, handle_sigint_handler);
 	signal(SIGCHLD, handle_sigchld);
+	fprintf(stderr, "Client connected -> %s\n", getenv("CLIENT"));
+
 	char *cmdline[argc - 1];
 	for(size_t i = 0; i < (argc - 1); i++) {
 		cmdline[i] = argv[i + 1];
@@ -242,6 +244,7 @@ int handler_main(int argc, char *argv[])
 		perror("waitpid failed");
 		exit(1);
 	}
+
 	if(getenv("DEBUG") != NULL) {
 		if (WIFSIGNALED(status))
 			print_abnormal_exit(WTERMSIG(status));
@@ -257,6 +260,8 @@ int handler_main(int argc, char *argv[])
 	shutdown(STDOUT_FILENO, SHUT_RDWR);
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
+	fprintf(stderr, "Client disconnected -> %s\n", getenv("CLIENT"));
+
 	return 0;
 }
 
