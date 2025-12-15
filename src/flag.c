@@ -59,6 +59,7 @@ int get_flag(
 	         challenge_id, team_id, user_id, (flag_endpoint_host == NULL ? "localhost" : flag_endpoint_host));
 
 	// Send HTTP request
+	fprintf(stderr, "Request:\n%s\n--------\n", request);
 	if (send(sockfd, request, strlen(request), 0) < 0) {
 		perror("Send failed");
 		close(sockfd);
@@ -73,7 +74,9 @@ int get_flag(
 
 		// Process the response line by line
 		char *line = strtok(response, "\r\n");  // Split by lines
+		fprintf(stderr, "Response:\n");
 		while (line != NULL) {
+			fprintf(stderr, "> %s\n", line);
 			if (strstr(line, flagfmt)) {
 				// If the line contains the flag format, print the flag
 				printf("Fetched flag: %s\n", line);
