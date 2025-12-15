@@ -166,6 +166,12 @@ int setup_tasks()
 		if (*s == 0 || *s == '#')
 			continue;
 
+		// unlink file
+		if (*s == '-') {
+			unlink(s + 1);
+			continue;
+		}
+
 		if (*s == '@' && s[1] == '-') { // handle @-VAR  (unset)
 			char *var = s + 2;
 			if (*var == 0) {
