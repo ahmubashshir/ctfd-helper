@@ -46,13 +46,16 @@ int start_handler(int fd, char *const args[])
 	pid_t pid = fork();
 	if (pid < 0) {
 		perror("fork failed");
-		close(fd);
+		if(fd > -1) close(fd);
 		return -1;
 	} else if (pid == 0) {
 		// Redirect input/output to the client socket
 		switch(fd) {
 		case -1:
-			break;
+			if (dup2(STDERR_FILENO, STDOUT_FILENO) < 0) {
+				perror("dup2 failed");
+				exit(1);
+			};
 		default:
 			if (dup2(fd, STDIN_FILENO) < 0 || dup2(fd, STDOUT_FILENO) < 0) {
 				perror("dup2 failed");
