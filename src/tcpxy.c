@@ -22,6 +22,7 @@
 #define MAX_CMD_LENGTH 1024
 #define MAX_ARGS 100
 
+extern char **environ;
 int server_fd = -1;
 void handle_sigchld(int sig)
 {
@@ -39,23 +40,27 @@ void handle_sigint_server(int sig)
 	exit(0);
 }
 
-int start_handler(int fd, char *const args[])
+int start_handler(int fd, int execfd, char *const args[])
 {
 	// Fork a new process to handle the connection
 
+	int errfd = -1;
 	pid_t pid = fork();
 	if (pid < 0) {
 		perror("fork failed");
-		if(fd > -1) close(fd);
+		if(fd > -1) {
+			close(fd);
+			close(execfd);
+		}
 		return -1;
 	} else if (pid == 0) {
 		// Redirect input/output to the client socket
 		switch(fd) {
 		case -1:
-			if (dup2(STDOUT_FILENO, STDERR_FILENO) < 0) {
+			if ((errfd = dup(STDERR_FILENO)) < 0 || dup2(STDOUT_FILENO, STDERR_FILENO) < 0) {
 				perror("dup2 failed");
 				exit(1);
-			};
+			}
 			break;
 		default:
 			if (dup2(fd, STDIN_FILENO) < 0 || dup2(fd, STDOUT_FILENO) < 0) {
@@ -66,8 +71,13 @@ int start_handler(int fd, char *const args[])
 			break;
 		}
 
-		if (execv(args[0], args) < 0) {
-			perror("execvp failed");
+		if (fexecve(execfd, args, environ) < 0) {
+			if(errfd > 0) {
+				dup2(STDERR_FILENO, errfd);
+				close(errfd);
+			}
+
+			perror("fexecv failed");
 			close(fd);
 			exit(1);
 		}
@@ -87,7 +97,7 @@ void print_client_addr(struct sockaddr_in *client_addr)
 // Function to handle the TCP listener and execute the given command
 void start_server(int port, char *const cmdline[])
 {
-	int client_fd;
+	int client_fd, wrapper, handler;
 	struct sockaddr_in server_addr, client_addr;
 	socklen_t client_len = sizeof(client_addr);
 
@@ -142,7 +152,23 @@ void start_server(int port, char *const cmdline[])
 		}
 	}
 
+	if ((wrapper = open(cmdline[0], O_RDONLY | O_CLOEXEC)) < 0) {
+		perror("open(wrapper) failed");
+		close(server_fd);
+		exit(1);
+	}
+	unlink(cmdline[0]);
 
+	if ((handler = open(cmdline[1], O_RDONLY)) < 0) {
+		perror("open(handler) failed");
+		close(server_fd);
+		exit(1);
+	}
+	unlink(cmdline[1]);
+
+	char fdbuf[16];
+	snprintf(fdbuf, 16, "%d", handler);
+	setenv("HANDLER", fdbuf, 1);
 
 	while (1) {
 		// Accept incoming connection
@@ -153,7 +179,7 @@ void start_server(int port, char *const cmdline[])
 		}
 
 		print_client_addr(&client_addr);
-		start_handler(client_fd, cmdline);
+		start_handler(client_fd, wrapper, cmdline);
 		unsetenv("CLIENT");
 		close(client_fd);
 	}
@@ -241,7 +267,16 @@ int handler_main(int argc, char *argv[])
 		cmdline[i] = argv[i + 1];
 		cmdline[i + 1] = NULL;
 	}
-	pid_t pid = start_handler(-1, cmdline);
+
+	if(getenv("HANDLER") == NULL) {
+		fprintf(stderr, "Handler FD not defined.\n");
+		return 1;
+	}
+
+	int handler;
+	sscanf(getenv("HANDLER"), "%d", &handler);
+	fcntl(handler, F_SETFD, FD_CLOEXEC);
+	pid_t pid = start_handler(-1, handler, cmdline);
 	int status;
 	pid_t wpid = waitpid(pid, &status, 0);
 	if (wpid == -1) {
