@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #define MAX_CMD_LENGTH 1024
 #define MAX_ARGS 100
@@ -191,6 +192,18 @@ void start_server(int port, char* argv0, char *const cmdline[])
 	close(server_fd);
 }
 
+static inline __attribute__((always_inline)) int get_env_port()
+{
+	int port = 20240;
+	if(getenv("PORT") == NULL) return port;
+
+	char* env = getenv("PORT");
+	for(size_t i = 0; env[i] != 0; i++)
+		if(! isdigit(env[i])) return port;
+
+	sscanf(env, "%d", &port);
+	return port;
+}
 
 int server_main(int argc, char *argv[])
 {
@@ -203,7 +216,7 @@ int server_main(int argc, char *argv[])
 	signal(SIGTERM, handle_sigint_server);
 	signal(SIGCHLD, handle_sigchld);
 
-	int port = 20240;
+	int port = get_env_port();
 	char *cmdline[argc];
 	for(size_t i = 1; i < argc; i++) {
 		cmdline[i - 1] = argv[i];
