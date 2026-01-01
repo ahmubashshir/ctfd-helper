@@ -52,10 +52,11 @@ int start_handler(int fd, char *const args[])
 		// Redirect input/output to the client socket
 		switch(fd) {
 		case -1:
-			if (dup2(STDERR_FILENO, STDOUT_FILENO) < 0) {
+			if (dup2(STDOUT_FILENO, STDERR_FILENO) < 0) {
 				perror("dup2 failed");
 				exit(1);
 			};
+			break;
 		default:
 			if (dup2(fd, STDIN_FILENO) < 0 || dup2(fd, STDOUT_FILENO) < 0) {
 				perror("dup2 failed");
