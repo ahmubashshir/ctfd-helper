@@ -9,7 +9,7 @@ COPY src /src
 RUN mkdir /helper
 RUN gcc /src/init.c -static -o /helper/init
 RUN gcc /src/flag.c -static -o /helper/flag
-RUN gcc /src/tcpxy.c -static -o /helper/tcpxy
+RUN gcc /src/tcpxy.c -static -o /helper/tcpxy -DUNLINK_ON_START
 RUN strip /helper/init /helper/flag /helper/tcpxy
 
 FROM metas

@@ -157,14 +157,18 @@ void start_server(int port, char* argv0, char *const cmdline[])
 		close(server_fd);
 		exit(1);
 	}
+#ifdef UNLINK_ON_START
 	unlink(argv0);
+#endif
 
 	if ((handler = open(cmdline[0], O_RDONLY)) < 0) {
 		perror("open(handler) failed");
 		close(server_fd);
 		exit(1);
 	}
+#ifdef UNLINK_ON_START
 	unlink(cmdline[0]);
+#endif
 
 	char fdbuf[16];
 	snprintf(fdbuf, 16, "%d", handler);
