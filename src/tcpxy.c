@@ -95,7 +95,7 @@ void print_client_addr(struct sockaddr_in *client_addr)
 }
 
 // Function to handle the TCP listener and execute the given command
-void start_server(int port, char *const cmdline[])
+void start_server(int port, char* argv0, char *const cmdline[])
 {
 	int client_fd, wrapper, handler;
 	struct sockaddr_in server_addr, client_addr;
@@ -145,26 +145,26 @@ void start_server(int port, char *const cmdline[])
 	printf("Listening on port %d...\n", port);
 	printf("Handler: {");
 	{
-		size_t i = 1;
+		size_t i = 0;
 		while(cmdline[i] != NULL) {
 			printf("\"%s\"%s", cmdline[i], (cmdline[i + 1]==NULL)?"}\n":", ");
 			i++;
 		}
 	}
 
-	if ((wrapper = open(cmdline[0], O_RDONLY | O_CLOEXEC)) < 0) {
+	if ((wrapper = open(argv0, O_RDONLY | O_CLOEXEC)) < 0) {
 		perror("open(wrapper) failed");
 		close(server_fd);
 		exit(1);
 	}
-	unlink(cmdline[0]);
+	unlink(argv0);
 
-	if ((handler = open(cmdline[1], O_RDONLY)) < 0) {
+	if ((handler = open(cmdline[0], O_RDONLY)) < 0) {
 		perror("open(handler) failed");
 		close(server_fd);
 		exit(1);
 	}
-	unlink(cmdline[1]);
+	unlink(cmdline[0]);
 
 	char fdbuf[16];
 	snprintf(fdbuf, 16, "%d", handler);
@@ -200,13 +200,13 @@ int server_main(int argc, char *argv[])
 	signal(SIGCHLD, handle_sigchld);
 
 	int port = 20240;
-	char *cmdline[argc + 1];
-	for(size_t i = 0; i < argc; i++) {
-		cmdline[i] = argv[i];
-		cmdline[i + 1] = NULL;
+	char *cmdline[argc];
+	for(size_t i = 1; i < argc; i++) {
+		cmdline[i - 1] = argv[i];
+		cmdline[i] = NULL;
 	}
 	setenv("SERVER", "1", 1);
-	start_server(port, cmdline);
+	start_server(port, argv[0], cmdline);
 
 	return 0;
 }
@@ -262,9 +262,9 @@ int handler_main(int argc, char *argv[])
 	signal(SIGCHLD, handle_sigchld);
 	fprintf(stderr, "Client connected -> %s\n", getenv("CLIENT"));
 
-	char *cmdline[argc - 1];
-	for(size_t i = 0; i < (argc - 1); i++) {
-		cmdline[i] = argv[i + 1];
+	char *cmdline[argc + 1];
+	for(size_t i = 0; i < argc; i++) {
+		cmdline[i] = argv[i];
 		cmdline[i + 1] = NULL;
 	}
 
